@@ -111,11 +111,11 @@ if(True == True):
             except:
                 RETENCAO = 'false'
                           
-            SERVER = '192.168.51.9'
-            DATABASE = 'PBS_PERMANENTE_DADOS'
-            USERNAME = 'SEVEN.CONTABIL'
-            PASSWORD = 'S3v3N.C0nt@biL@2023!*@'
-            DRIVER = 'SQL Server'
+            SERVER = cfg.get('CONFIG','SERVER')
+            DATABASE = cfg.get('CONFIG','DATABASE')
+            USERNAME = cfg.get('CONFIG','USERNAME')
+            PASSWORD = cfg.get('CONFIG','PASSWORD')
+            DRIVER = cfg.get('CONFIG','DRIVER')
 
             CNPJ_DESTINATARIO = (f'{dados[1][0:2]}.{dados[1][2:5]}.{dados[1][5:8]}/{dados[1][8:12]}-{dados[1][12:15]}')
             CNPJ_EMITENTE = (f'{dados[3][0:2]}.{dados[3][2:5]}.{dados[3][5:8]}/{dados[3][8:12]}-{dados[3][12:15]}')
