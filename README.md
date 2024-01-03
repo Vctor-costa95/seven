@@ -1,1 +1,2 @@
-colection of scripts written for my job as an automation programmer
+Coleção de arquivos utilizados por mim para fazer automações junto da equipe da Seven Sistemas.
+
