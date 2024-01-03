@@ -36,3 +36,5 @@ build/lancamento_servicos_procfit/PYZ-00.toc
 build/lancamento_servicos_procfit/warn-lancamento_servicos_procfit.txt
 build/lancamento_servicos_procfit/xref-lancamento_servicos_procfit.html
 usando como teste.ipynb
+*.pyc
+txt.txt
