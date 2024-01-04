@@ -191,6 +191,7 @@ def extract_text_from_pdf_neoenergia(arquivo):
 def extract_text_from_pdf_energisa(arquivo):
    with pdfplumber.open(arquivo) as pdf:
         text = ""
+        cont_cc=False
         v_c = False
         l_a = False
         lx = False
@@ -204,6 +205,7 @@ def extract_text_from_pdf_energisa(arquivo):
         conta = 0
         chave = ""
         ven = False
+        cnpj_cliente=0
         for page in pdf.pages:
             text += page.extract_text()
             a = text
@@ -211,6 +213,13 @@ def extract_text_from_pdf_energisa(arquivo):
             
             for line in lines:
                     
+                if cont_cc== True:
+                    x=x+1
+                    if x==1:
+                        if cod_cliente== 0:
+                            cod_cliente = line.split(' ')[-1]
+                            cont_cc=False
+                            
                 if t_n == True:
                     ct= ct+1
                     if ct==3:
@@ -280,6 +289,8 @@ def extract_text_from_pdf_energisa(arquivo):
                     
                 if f'DROGATIM DROGARIAS LTDA' in line or 'COMERCIAL DRUGSTORE LTDA' in line:
                     l_a=True
+                    cont_cc = True
+                    x=0
                 
 
                     
@@ -311,8 +322,17 @@ def extract_text_from_pdf_energisa(arquivo):
                 
             vencimento = vencimento.replace('/','')
             
+            lista = vencimento,cnpj_cliente,n_nota,cnpj_prestador,cod_cliente.replace('-',''),valor,leitura_anterior,leitura_atual,total_kwh,consumo_acumulado,leitura_atual[2:12],chave[0:44],emissao.replace('/','')
+            df = pd.read_excel("C:/SEVEN/teste joao/relacao_nome_matricula.xlsx")
+            corresp = df.loc[df['MATRÍCULA']==(lista[4])]['CNPJ']
+            corresp = corresp.to_string()
+            corresp = corresp.split(sep=' ')[4]
+            lista = list(lista)
+            lista[2]=corresp.replace('.','').replace('-','').replace('.','')
+            lista[4]=lista[4].replace('/','')
+            
                     
-        return vencimento,'cnpj_cliente',n_nota,cnpj_prestador,cod_cliente.replace('-','').replace('/',''),valor,leitura_anterior,leitura_atual,total_kwh,consumo_acumulado,leitura_atual[2:12],chave[0:44],emissao.replace('/','')
+        return lista,corresp
 
 
 

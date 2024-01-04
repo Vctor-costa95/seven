@@ -38,3 +38,4 @@ build/lancamento_servicos_procfit/xref-lancamento_servicos_procfit.html
 usando como teste.ipynb
 *.pyc
 txt.txt
+*.PDF
