@@ -353,7 +353,7 @@ if(True == True):
                         shutil.move(src_path, dst_path)
                         print(f"Arquivo '{arq}' movido para '{DIR_PDFS_N_PROCESSADOS}'.")
                         with open(r'C:/SEVEN/teste joao/logs.txt', "a") as arquivo:
-                            arquivo.write(f"'{today}, {current_time} ' Arquivo '{arq}' não está no banco de dados\n")
+                            arquivo.write(f"{today}, {current_time}  Arquivo {arq} não está no banco de dados\n")
                         pyautogui.press('esc')
                         pyautogui.hotkey('alt', 'f4')
                         handle = Popen(r"C:\SEVEN\teste joao\lancamento_pdfs.exe", creationflags=CREATE_NEW_CONSOLE)
