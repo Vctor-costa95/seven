@@ -309,9 +309,27 @@ if(True == True):
                     pyautogui.press('enter')
                     time.sleep(5)  
                     
+                    sql = f'''
+                SELECT B.INSCRICAO_FEDERAL, C.INSCRICAO_FEDERAL, A.NF_NUMERO, A.NF_ESPECIE, NF_SERIE 
+                FROM NF_COMPRA A 
+                JOIN ENTIDADES B ON A.ENTIDADE = B.ENTIDADE 
+                JOIN ENTIDADES C ON A.EMPRESA  = C.ENTIDADE
+                WHERE B.INSCRICAO_FEDERAL      = '{CNPJ_EMITENTE}'
+                AND C.INSCRICAO_FEDERAL        = '{CNPJ_DESTINATARIO}'
+                AND A.NF_NUMERO                = '{NF_NUMERO}'
+                AND A.NF_ESPECIE               = '{NF_ESPECIE}'
+                AND A.NF_SERIE                 = '{NF_SERIE}'
+            '''
+
+            
+                    print("Iniciando conexão com o DB")
+                    connectionString = f'DRIVER={DRIVER};SERVER={SERVER};DATABASE={DATABASE};UID={USERNAME};PWD={PASSWORD}'
                     conn = pyodbc.connect(connectionString)
+                    cursor = conn.cursor()
+
                     cursor.execute(sql)
                     records = cursor.fetchall()
+                    print(sql)
                     totalRegistros = len(records)
                     time.sleep(2)
                     

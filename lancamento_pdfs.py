@@ -319,13 +319,31 @@ if(True == True):
                     pyautogui.mouseUp()
                     time.sleep(5)         
                     pyautogui.press('enter')
-                    time.sleep(5)  
+                    time.sleep(10)  
                     
+                    sql = f'''
+                SELECT B.INSCRICAO_FEDERAL, C.INSCRICAO_FEDERAL, A.NF_NUMERO, A.NF_ESPECIE, NF_SERIE 
+                FROM NF_COMPRA A 
+                JOIN ENTIDADES B ON A.ENTIDADE = B.ENTIDADE 
+                JOIN ENTIDADES C ON A.EMPRESA  = C.ENTIDADE
+                WHERE B.INSCRICAO_FEDERAL      = '{CNPJ_EMITENTE}'
+                AND C.INSCRICAO_FEDERAL        = '{CNPJ_DESTINATARIO}'
+                AND A.NF_NUMERO                = '{NF_NUMERO}'
+                AND A.NF_ESPECIE               = '{NF_ESPECIE}'
+                AND A.NF_SERIE                 = '{NF_SERIE}'
+                '''
+            
+              
                     connectionString = f'DRIVER={DRIVER};SERVER={SERVER};DATABASE={DATABASE};UID={USERNAME};PWD={PASSWORD}'
                     conn = pyodbc.connect(connectionString)
                     cursor = conn.cursor()
+                    print("Executando consulta SQL")
                     cursor.execute(sql)
                     records = cursor.fetchall()
+                    print("Exibindo resultado")                  
+                    print(sql)                   
+                    print(records)
+                    totalRegistros = len(records)
                     time.sleep(2)
                     
                     if totalRegistros == 0:
@@ -336,9 +354,9 @@ if(True == True):
                         print(f"Arquivo '{arq}' movido para '{DIR_PDFS_N_PROCESSADOS}'.")
                         with open(r'C:/SEVEN/teste joao/logs.txt', "a") as arquivo:
                             arquivo.write(f"'{today}, {current_time} ' Arquivo '{arq}' não está no banco de dados\n")
+                        pyautogui.press('esc')
                         pyautogui.hotkey('alt', 'f4')
-                        pyautogui.hotkey('alt', 'f4')
-                        handle = Popen(r"C:\SEVEN\teste joao\lancamento_servicos_procfit.exe", creationflags=CREATE_NEW_CONSOLE)
+                        handle = Popen(r"C:\SEVEN\teste joao\lancamento_pdfs.exe", creationflags=CREATE_NEW_CONSOLE)
                         exit()
                     else:              
                         src_path = os.path.join(arq)
