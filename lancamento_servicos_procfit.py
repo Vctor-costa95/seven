@@ -248,7 +248,7 @@ if(True == True):
                     if RETENCAO == 'true':
                         pyautogui.write('S')
                     pyautogui.press('tab')
-                    if RETENCAO == 'true' and dados[5].replace(".",",") > 499.99:
+                    if RETENCAO == 'true' and float(dados[5]) > 499.99:
                         pyautogui.write('S')
                     pyautogui.press('tab', presses=3)
                     pyautogui.write('1')
