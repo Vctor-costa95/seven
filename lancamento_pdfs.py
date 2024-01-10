@@ -96,9 +96,24 @@ if(True == True):
             dados = list(dados)     
             file_name = arq.split("[")[-1][0:15]
             print(file_name[14])
-            if file_name[14] == ']':                                    #se o 13 charactere do nome for ] dá ele pega os numeros.
-                dados[1] = file_name[0:14]
-                
+            try:
+                if file_name[14] == ']':                                    #se o 13 charactere do nome for ] dá ele pega os numeros.
+                    dados[1] = file_name[0:14]
+                    print('cnpj')
+            except:
+                print('sem cpf/código no nome')
+            try:
+                if "]" in file_name:
+                    dado = file_name.split(']')[0]
+                    
+                    df = pd.read_excel("C:/SEVEN/teste joao/relacao_nome_matricula.xlsx")
+                    corresp = df.loc[df['LOJA']==int(dado)]['CNPJ']
+                    corresp = corresp.to_string()
+                    dados[1] = corresp.split(' ')[-1].replace('.','').replace('-','').replace('/','')
+                    
+                    print('codigo')
+            except:
+                print('sem cpf/codigo no nome')
                 
             print(arq, len(arquivos))
             print(dados)
@@ -279,8 +294,12 @@ if(True == True):
                     pyautogui.press('tab', presses=9)
                     pyautogui.write(CLASS_FIN)
                     pyautogui.press('tab')
-                    pyautogui.press('enter')
                     time.sleep(3)
+                    pyautogui.moveTo(632, 513)
+                    pyautogui.mouseDown()
+                    pyautogui.mouseUp()
+                    time.sleep(3)
+                    
 
                     pyautogui.press('f12')
                     pyautogui.write('01') 
@@ -309,7 +328,19 @@ if(True == True):
                     pyautogui.press('tab')
                     time.sleep(2)
                     pyautogui.write(dados[10])
-                    time.sleep(1)
+                    time.sleep(3)
+                    pyautogui.moveTo(985, 507)
+                    time.sleep(2)
+                    pyautogui.mouseDown()
+                    time.sleep(5)
+                    pyautogui.mouseUp()
+                    
+                    time.sleep(5)
+                    pyautogui.moveTo(631, 513)
+                    pyautogui.mouseDown()
+                    pyautogui.mouseUp()
+                    time.sleep(5)
+                    
                         
                     pyautogui.hotkey('ctrl', 'g')
                     time.sleep(15)
