@@ -1,24 +1,24 @@
 import configparser
 import json
-import time
-import zipfile
 import os
 import shutil
 import sys
-import pyodbc
-from datetime import datetime, timedelta,date
+import time
+import zipfile
+from datetime import date, datetime, timedelta
 from os import listdir, path, remove, unlink, walk
-from shutil import rmtree, move
+from shutil import move, rmtree
 from subprocess import CREATE_NEW_CONSOLE, Popen, call
 from threading import *
-from lançamento_dassa import converterXmlServicoToJson
-from lancador_equatorial import *
-
 
 import pandas as pd
 import pyautogui
+import pyodbc
 import pyperclip as pc
 import win32api
+
+from lancador_equatorial import *
+from lançamento_dassa import converterXmlServicoToJson
 
 now = datetime.now()
 today = date.today()
@@ -94,30 +94,28 @@ if(True == True):
                     
             print(dados)  
             dados = list(dados)     
-            file_name = arq.split("[")[-1][0:15]
-            print(file_name[14])
-            try:
-                if file_name[14] == ']':                                    #se o 13 charactere do nome for ] dá ele pega os numeros.
-                    dados[1] = file_name[0:14]
-                    print('cnpj')
-            except:
-                print('sem cpf/código no nome')
-            try:
-                if "]" in file_name:
-                    dado = file_name.split(']')[0]
-                    
-                    df = pd.read_excel("C:/SEVEN/teste joao/relacao_nome_matricula.xlsx")
-                    corresp = df.loc[df['LOJA']==int(dado)]['CNPJ']
+            
+            array_nome_arquivo = arq.split("]")
+            if(len(array_nome_arquivo) > 1):
+                array_codigo_cnpj = array_nome_arquivo[0].split('[')
+                codigo_cnpj = str(array_codigo_cnpj[1].replace('.','').replace('-','').replace('/','')) 
+                print("Código/CNPJ no nome do arquivo: " + codigo_cnpj)
+            
+                if(len(codigo_cnpj) == 14):
+                    dados[1] = codigo_cnpj
+                else:
+                    df = pd.read_excel(application_path + "\\relacao_nome_matricula.xlsx")
+                    corresp = df.loc[df['LOJA'].astype(int)==int(codigo_cnpj)]['CNPJ']
                     corresp = corresp.to_string()
-                    dados[1] = corresp.split(' ')[-1].replace('.','').replace('-','').replace('/','')
-                    
-                    print('codigo')
-            except:
-                print('sem cpf/codigo no nome')
+                    dados[1] = corresp.split(' ')[-1].replace('.','').replace('-','').replace('/','')                    
+                    print("CNPJ recuperado através da planilha: " + dados[1])
+            else:
+                print('Sem Código/CNPJ no nome do arquivo')
+            
                 
             print(arq, len(arquivos))
             print(dados)
-                     
+                 
             CLASS_FIN = cfg.get(dados[3], 'class_fin')
             SERIE= cfg.get(dados[3],'serie')
             NF_ESPECIE = cfg.get(dados[3],'nf_especie')
@@ -255,8 +253,9 @@ if(True == True):
                     
                     pyautogui.press('enter')
                     pyautogui.press('tab', presses=2)
+                    pyautogui.press('enter')
                     
-                    if NF_MODELO == 66:
+                    if NF_MODELO == '66':
                         pyautogui.press('down')
                         pyautogui.press('enter')
                     
@@ -383,18 +382,18 @@ if(True == True):
                         dst_path = os.path.join(DIR_PDFS_N_PROCESSADOS)
                         shutil.move(src_path, dst_path)
                         print(f"Arquivo '{arq}' movido para '{DIR_PDFS_N_PROCESSADOS}'.")
-                        with open(r'C:/SEVEN/teste joao/logs.txt', "a") as arquivo:
+                        with open(application_path + "\\logs.txt", "a") as arquivo:
                             arquivo.write(f"{today}, {current_time}  Arquivo {arq} não está no banco de dados\n")
                         pyautogui.press('esc')
                         pyautogui.hotkey('alt', 'f4')
-                        handle = Popen(r"C:\SEVEN\teste joao\lancamento_pdfs.exe", creationflags=CREATE_NEW_CONSOLE)
+                        handle = Popen(application_path + "\\lancamento_pdfs.exe", creationflags=CREATE_NEW_CONSOLE)
                         exit()
                     else:              
                         src_path = os.path.join(arq)
                         dst_path = os.path.join(DIR_PDFS_PROCESSADOS)
                         shutil.move(src_path, dst_path)
                         print(f"Arquivo '{arq}' movido para '{DIR_PDFS_PROCESSADOS}'.")
-                        with open(r'C:/SEVEN/teste joao/logs.txt', "a") as arquivo:
+                        with open(application_path + "\\logs.txt", "a") as arquivo:
                             arquivo.write(f"{today} {current_time} Arquivo {arq} foi cadastrado corretamente!\n")
                             
             except Exception as e:
@@ -530,8 +529,9 @@ if(True == True):
                     pyautogui.press('enter')
                     pyautogui.press('tab', presses=2)
                     time.sleep(1)
+                    pyautogui.press('enter')
                         
-                    if NF_MODELO == 22:
+                    if NF_MODELO == '22':
                         pyautogui.press('down', presses= 4)
                         pyautogui.press('enter')
                         
@@ -586,18 +586,18 @@ if(True == True):
                         dst_path = os.path.join(DIR_PDFS_N_PROCESSADOS)
                         shutil.move(src_path, dst_path)
                         print(f"Arquivo '{arq}' movido para '{DIR_PDFS_N_PROCESSADOS}'.")
-                        with open('logs.txt', "a") as arquivo:
+                        with open(application_path + "\\logs.txt", "a") as arquivo:
                             arquivo.write(f"'{today}, {current_time} ' Arquivo '{arq}' não está no banco de dados")
                         pyautogui.press('esc')
                         pyautogui.hotkey('alt', 'f4')
-                        handle = Popen("C:\SEVEN\teste joao\lancamento_servicos_procfit.exe", creationflags=CREATE_NEW_CONSOLE)
+                        handle = Popen(application_path + "\\lancamento_servicos_procfit.exe", creationflags=CREATE_NEW_CONSOLE)
                         print('falta ver o [WinError 5] Acesso negado')
                         exit()
                     if totalRegistros > 0:              
                         src_path = os.path.join(arq)
                         dst_path = os.path.join(DIR_PDFS_PROCESSADOS)
                         shutil.move(src_path, dst_path)
-                        with open('logs.txt', "a") as arquivo:
+                        with open(application_path + "\\logs.txt", "a") as arquivo:
                             arquivo.write(f"{today} {current_time} Arquivo {arq} foi cadastrado corretamente!\n")
                     
                         pyautogui.moveTo(994, 76)
@@ -655,4 +655,4 @@ if(True == True):
     pyautogui.press('right')
     pyautogui.press('enter')
     print('script rodado completamente')
-sys.exit()  
+exit()  
