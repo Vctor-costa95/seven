@@ -47,6 +47,12 @@ DIR_PDF_CLARO = cfg.get('CONFIG','dir_pdf_claro')
 MENU_ERP_X = cfg.getint('MENU_ERP', 'X')
 MENU_ERP_Y = cfg.getint('MENU_ERP', 'Y')
 
+BOTAO_SALVAR_F_X = cfg.getint('BOTAO_SALVAR_F', 'X')
+BOTAO_SALVAR_F_Y = cfg.getint('BOTAO_SALVAR_F', 'Y')
+
+SETA_UP_F12_X = cfg.getint('SETA_UP_F12', 'X')
+SETA_UP_F12_Y = cfg.getint('SETA_UP_F12', 'Y')
+
 if(True == True):
     qtd_sistemas = 1
     for z in range(qtd_sistemas):
@@ -84,6 +90,9 @@ if(True == True):
         arquivos = [path.join(DIR_PDF, nome) for nome in listdir(
             DIR_PDF) if nome.endswith(fileExt) or nome.endswith(fileExt.upper())]
         for arq in arquivos:
+            print("Processando arquivo " + arq)
+            print("Extraindo dados do arquivo")
+            
             try:
                 dados = extract_text_from_pdf_equatorial(arq)
             except:
@@ -95,6 +104,7 @@ if(True == True):
             print(dados)  
             dados = list(dados)     
             
+            print("Verificando Código/CNPJ no nome do arquivo")
             array_nome_arquivo = arq.split("]")
             if(len(array_nome_arquivo) > 1):
                 array_codigo_cnpj = array_nome_arquivo[0].split('[')
@@ -112,9 +122,7 @@ if(True == True):
             else:
                 print('Sem Código/CNPJ no nome do arquivo')
             
-                
-            print(arq, len(arquivos))
-            print(dados)
+            print("Dados do arquivo: ", dados)
                  
             CLASS_FIN = cfg.get(dados[3], 'class_fin')
             SERIE= cfg.get(dados[3],'serie')
@@ -149,6 +157,7 @@ if(True == True):
             '''
             
             try:
+                print("Verificando nota no Banco de Dados")
                 print("Iniciando conexão com o DB")
                 connectionString = f'DRIVER={DRIVER};SERVER={SERVER};DATABASE={DATABASE};UID={USERNAME};PWD={PASSWORD}'
                 conn = pyodbc.connect(connectionString)
@@ -156,12 +165,12 @@ if(True == True):
                 cursor = conn.cursor()
 
                 print("Executando consulta SQL")
-                cursor.execute(sql)
-                records = cursor.fetchall()
-                print("Exibindo resultado")
                 print("")
                 print("")
                 print(sql)
+                cursor.execute(sql)
+                records = cursor.fetchall()
+                print("Exibindo resultado")
                 print("")
                 print("")
                 print(records)
@@ -186,6 +195,7 @@ if(True == True):
                     conn.close()
                     print("Conexão fechada")
 
+                    print("Iniciando lançamento")
                     pyautogui.hotkey('ctrl', 'i')
                     time.sleep(5)
                     pyautogui.press('tab', presses= 8)
@@ -294,7 +304,7 @@ if(True == True):
                     pyautogui.write(CLASS_FIN)
                     pyautogui.press('tab')
                     time.sleep(3)
-                    pyautogui.moveTo(632, 513)
+                    pyautogui.moveTo(BOTAO_SALVAR_F_X, BOTAO_SALVAR_F_Y)
                     pyautogui.mouseDown()
                     pyautogui.mouseUp()
                     time.sleep(3)
@@ -328,14 +338,14 @@ if(True == True):
                     time.sleep(2)
                     pyautogui.write(dados[10])
                     time.sleep(3)
-                    pyautogui.moveTo(985, 507)
+                    pyautogui.moveTo(SETA_UP_F12_X, SETA_UP_F12_Y)
                     time.sleep(2)
                     pyautogui.mouseDown()
                     time.sleep(5)
                     pyautogui.mouseUp()
                     
                     time.sleep(5)
-                    pyautogui.moveTo(631, 513)
+                    pyautogui.moveTo(BOTAO_SALVAR_F_X, BOTAO_SALVAR_F_Y)
                     pyautogui.mouseDown()
                     pyautogui.mouseUp()
                     time.sleep(5)
@@ -350,6 +360,9 @@ if(True == True):
                     time.sleep(5)         
                     pyautogui.press('enter')
                     time.sleep(10)  
+                    
+                    print("Lançamento finalizado")
+                    print("Analisando nota no Banco de Dados")
                     
                     sql = f'''
                 SELECT B.INSCRICAO_FEDERAL, C.INSCRICAO_FEDERAL, A.NF_NUMERO, A.NF_ESPECIE, NF_SERIE 
@@ -398,13 +411,20 @@ if(True == True):
                             
             except Exception as e:
                 print(e)  
+                
+            print("--------------------------")
+            print("")
+            print("")
                               
         fileExt = r".pdf"
         arquivos = [path.join(DIR_PDF_CLARO, nome) for nome in listdir(
             DIR_PDF_CLARO) if nome.endswith(fileExt) or nome.endswith(fileExt.upper())]
-        for arq in arquivos:
-            dados = extract_text_from_pdf_claro(arq)
-            print(arq, len(arquivos))
+        for arq in arquivos:            
+            print("Processando arquivo (DIR CLARO) " + arq)
+            print("Extraindo dados do arquivo")
+            
+            dados = extract_text_from_pdf_claro(arq)            
+            print("Dados do arquivo: ", dados)
             
 
             CLASS_FIN = cfg.get(dados[3], 'class_fin')
@@ -436,6 +456,7 @@ if(True == True):
             '''
 
             try:
+                print("Verificando nota no Banco de Dados")
                 print("Iniciando conexão com o DB")
                 connectionString = f'DRIVER={DRIVER};SERVER={SERVER};DATABASE={DATABASE};UID={USERNAME};PWD={PASSWORD}'
                 conn = pyodbc.connect(connectionString)
@@ -464,6 +485,7 @@ if(True == True):
                     print("Fechando conexão com o DB")
                     conn.close()
                     print("Conexão fechada")
+                    print("Iniciando lançamento")
 
                     pyautogui.hotkey('ctrl', 'i')
                     time.sleep(5)
@@ -574,6 +596,9 @@ if(True == True):
                     pyautogui.press('enter')
                     time.sleep(5)  
                     
+                    print("Lançamento finalizado")
+                    
+                    print("Verificando nota no Banco de Dados")
                     conn = pyodbc.connect(connectionString)
                     cursor.execute(sql)
                     records = cursor.fetchall()
@@ -646,7 +671,11 @@ if(True == True):
                         time.sleep(15)         
                                          
             except Exception as e:
-                print(e)        
+                print(e)     
+                
+            print("--------------------------")
+            print("")
+            print("")   
                 
         
     pyautogui.moveTo(1005, 706)
