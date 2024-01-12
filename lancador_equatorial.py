@@ -1,6 +1,15 @@
-import pdfplumber
+import sys
+from os import path
+
 import pandas as pd
+import pdfplumber
 import PyPDF2
+
+if getattr(sys, 'frozen', False):
+    application_path = path.dirname(sys.executable)
+elif __file__:
+    application_path = path.dirname(__file__)
+
 
 def extract_text_from_pdf_equatorial(arq):
         with open(arq, 'rb') as file:
@@ -193,6 +202,7 @@ def extract_text_from_pdf_energisa(arquivo):
         text = ""
         cont_cc=False
         v_c = False
+        carregarVencimento = False
         l_a = False
         lx = False
         t_n = False
@@ -212,7 +222,6 @@ def extract_text_from_pdf_energisa(arquivo):
             lines = a.split(sep='\n')
             
             for line in lines:
-                    
                 if cont_cc== True:
                     x=x+1
                     if x==1:
@@ -245,6 +254,10 @@ def extract_text_from_pdf_energisa(arquivo):
                     vencimento = line.split(' ')[3]
                     ven = False
                     
+                if carregarVencimento == True:
+                    vencimento = line.split(' ')[1]
+                    carregarVencimento = False
+                    
                 if chave[0:3] == 'htt':
                     conta = conta +1
                     if conta == 2:
@@ -265,25 +278,32 @@ def extract_text_from_pdf_energisa(arquivo):
   
                 if 'Autorização:' in line:
                     ven = True     
+                    
+                if 'VENCIMENTO' in line:
+                    carregarVencimento = True
                                       
                 if 'CPF/CNPJ/RANI:' in line:
                     cnpj_cliente = line.split(':')[-1].replace(' ','').replace('/','').replace('-','').replace('.','')
                     v_c = True       
                     
                 if 'NOTA FISCAL N' in line:
-                    n_nota = line.split(' ')[3]
+                    print(line)   
                     try:
-                        n_nota = line.split(' ')[3]
-                        if (bool(int(n_nota.replace('.','')))) == False:
+                        n_nota = line.split(' ')[3].replace('.','')
+                        if (bool(int(n_nota))) == False:
                             pass
                     except:
                         n_nota = line.split(' ')[5].replace('.','')
-                    if cod_cliente == 0:
-                        cod_cliente = line.split(' ')[1]
-                        if cod_cliente == 'PAULO':
-                            cod_cliente = line.split(' ')[3]
-                        
                     
+                    try:
+                        int(n_nota)
+                    except:
+                        n_nota = line.split(' ')[7].replace('.','')
+                        
+                    cod_cliente = line.split(' ')[1]
+                    if cod_cliente == 'PAULO':
+                        cod_cliente = line.split(' ')[3]
+                        
                 if 'Insc.Est.' in line:
                     cnpj_prestador = line.replace(' ','').split('Insc.Est.')[0][4:22].replace('/','').replace('-','').replace('.','') 
                     
@@ -291,8 +311,6 @@ def extract_text_from_pdf_energisa(arquivo):
                     l_a=True
                     cont_cc = True
                     x=0
-                
-
                     
                 if 'Consumo em kWh' in line:
                     linha = line.split(' ')
@@ -311,28 +329,25 @@ def extract_text_from_pdf_energisa(arquivo):
                 if 'COMERCIAL/COMERCIAL' in line:
                     t_n=True
                     
-                if 'INTERMARES' in line:
-                    cod_cliente = line.split(' ')[1]
-                try:
-                    int(n_nota)
-                except:
-                    if 'NOTA FISCAL Nº' in line:
-                        n_nota = line.split(' ')[7].replace('.','')
-                    pass
-                
+                # if 'INTERMARES' in line or 'TORRE' in line or 'MANGABEIRA' in line:
+                #     if(cod_cliente == ''):
+                #         cod_cliente = line.split(' ')[1]
+                #         print(cod_cliente)
+                   
             vencimento = vencimento.replace('/','')
             
             lista = vencimento,cnpj_cliente,n_nota,cnpj_prestador,cod_cliente.replace('-',''),valor,leitura_anterior,leitura_atual,total_kwh,consumo_acumulado,leitura_atual[2:12],chave[0:44],emissao.replace('/','')
-            df = pd.read_excel("C:/SEVEN/teste joao/relacao_nome_matricula.xlsx")
+            df = pd.read_excel(application_path + "\\relacao_nome_matricula.xlsx")            
             corresp = df.loc[df['MATRÍCULA']==(lista[4])]['CNPJ']
             corresp = corresp.to_string()
-            corresp = corresp.split(sep=' ')[4]
-            lista = list(lista)
-            lista[2]=corresp.replace('.','').replace('-','').replace('.','')
-            lista[4]=lista[4].replace('/','')
+            if(corresp != 'Series([], )'):
+                corresp = corresp.split(sep=' ')[4]
+                lista = list(lista)
+                lista[1]=corresp.replace('.','').replace('-','').replace('/','')
+                lista[4]=lista[4].replace('/','')
             
                     
-        return lista,corresp
+        return lista
 
 
 
@@ -417,6 +432,4 @@ def extract_text_from_pdf_claro(arquivo):
 # 0 vencimento, 1 cnpj da drugstore, 2 numero da nota fiscal, 3 cnpj claro, 4 valor do servico, 5 data de emissao, 6 valor resto     
                 
                 
-        
-                    
-    
+#print(extract_text_from_pdf_energisa("D:\\temp\\[06198619003740]LOJA60ENERGISA.pdf"))
