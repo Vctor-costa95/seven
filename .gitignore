@@ -42,3 +42,6 @@ txt.txt
 *.zip
 *.csv
 example.txt
+*.xls
+*.rar
+*.xml
