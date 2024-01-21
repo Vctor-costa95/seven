@@ -683,239 +683,58 @@ if(True == True):
         for arq in arquivos:
             dados = extract_text_from_pdf_VFS(arq)
             print(arq, len(arquivos))
-            try:
-                SERVICO = cfg.get(dados[3], 'servico')
-                OPERACAO = cfg.get(dados[3], 'operacao')
-                CLASS_FIN = cfg.get(dados[3], 'class_fin')
-                F6 = cfg.get(dados[3], 'f6')
-                SERIE= cfg.get(dados[3],'serie')
-                NF_ESPECIE = cfg.get(dados[3],'nf_especie')
-            except:
-                SERVICO = 43
-                OPERACAO = 152
-                CLASS_FIN = []
-                F6 = 'False'
-                SERIE = 0
-                NF_ESPECIE = 'NFS'
-                NF_SERIE = 0
-            try:
-                RETENCAO = cfg.get(dados[3], 'retencao')
-            except:
-                RETENCAO = 'false'
-                          
-            SERVER = cfg.get('CONFIG','SERVER')
-            DATABASE = cfg.get('CONFIG','DATABASE')
-            USERNAME = cfg.get('CONFIG','USERNAME')
-            PASSWORD = cfg.get('CONFIG','PASSWORD')
-            DRIVER = cfg.get('CONFIG','DRIVER')
+            if dados[7] == 'N° NFS-e' or dados[7] == 'RPS Nº':
+                try:
+                    SERVICO = cfg.get(dados[3], 'servico')
+                    OPERACAO = cfg.get(dados[3], 'operacao')
+                    CLASS_FIN = cfg.get(dados[3], 'class_fin')
+                    F6 = cfg.get(dados[3], 'f6')
+                    SERIE= cfg.get(dados[3],'serie')
+                    NF_ESPECIE = cfg.get(dados[3],'nf_especie')
+                except:
+                    SERVICO = 43
+                    OPERACAO = 152
+                    CLASS_FIN = []
+                    F6 = 'False'
+                    SERIE = 0
+                    NF_ESPECIE = 'NFS'
+                    NF_SERIE = 0
+                try:
+                    RETENCAO = cfg.get(dados[3], 'retencao')
+                except:
+                    RETENCAO = 'false'
+                    
+                SERVICO = 8
+                OPERACAO = 23
+                CLASS_FIN = 109
+                 
+                SERVER = cfg.get('CONFIG','SERVER')
+                DATABASE = cfg.get('CONFIG','DATABASE')
+                USERNAME = cfg.get('CONFIG','USERNAME')
+                PASSWORD = cfg.get('CONFIG','PASSWORD')
+                DRIVER = cfg.get('CONFIG','DRIVER')
 
-            CNPJ_DESTINATARIO = (f'{dados[1][0:2]}.{dados[1][2:5]}.{dados[1][5:8]}/{dados[1][8:12]}-{dados[1][12:15]}')
-            CNPJ_EMITENTE = (f'{dados[3][0:2]}.{dados[3][2:5]}.{dados[3][5:8]}/{dados[3][8:12]}-{dados[3][12:15]}')
-            NF_NUMERO = dados[2]
-            NF_SERIE = SERIE
-            
-            if NF_NUMERO[0]== '0':
-                NF_NUMERO = NF_NUMERO[1:len(NF_NUMERO)]
+                CNPJ_DESTINATARIO = (f'{dados[1][0:2]}.{dados[1][2:5]}.{dados[1][5:8]}/{dados[1][8:12]}-{dados[1][12:15]}')
+                CNPJ_EMITENTE = (f'{dados[3][0:2]}.{dados[3][2:5]}.{dados[3][5:8]}/{dados[3][8:12]}-{dados[3][12:15]}')
+                NF_NUMERO = dados[2]
+                NF_SERIE = SERIE
+                
+                if NF_NUMERO[0]== '0':
+                    NF_NUMERO = NF_NUMERO[1:len(NF_NUMERO)]
 
-            sql = f'''
-                SELECT B.INSCRICAO_FEDERAL, C.INSCRICAO_FEDERAL, A.NF_NUMERO, A.NF_ESPECIE, NF_SERIE 
-                FROM NF_COMPRA A 
-                JOIN ENTIDADES B ON A.ENTIDADE = B.ENTIDADE 
-                JOIN ENTIDADES C ON A.EMPRESA  = C.ENTIDADE
-                WHERE B.INSCRICAO_FEDERAL      = '{CNPJ_EMITENTE}'
-                AND C.INSCRICAO_FEDERAL        = '{CNPJ_DESTINATARIO}'
-                AND A.NF_NUMERO                = '{NF_NUMERO}'
-                AND A.NF_ESPECIE               = '{NF_ESPECIE}'
-                AND A.NF_SERIE                 = '{NF_SERIE}'
-            '''
+                sql = f'''
+                    SELECT B.INSCRICAO_FEDERAL, C.INSCRICAO_FEDERAL, A.NF_NUMERO, A.NF_ESPECIE, NF_SERIE 
+                    FROM NF_COMPRA A 
+                    JOIN ENTIDADES B ON A.ENTIDADE = B.ENTIDADE 
+                    JOIN ENTIDADES C ON A.EMPRESA  = C.ENTIDADE
+                    WHERE B.INSCRICAO_FEDERAL      = '{CNPJ_EMITENTE}'
+                    AND C.INSCRICAO_FEDERAL        = '{CNPJ_DESTINATARIO}'
+                    AND A.NF_NUMERO                = '{NF_NUMERO}'
+                    AND A.NF_ESPECIE               = '{NF_ESPECIE}'
+                    AND A.NF_SERIE                 = '{NF_SERIE}'
+                '''
 
-            try:
-                print("Iniciando conexão com o DB")
-                connectionString = f'DRIVER={DRIVER};SERVER={SERVER};DATABASE={DATABASE};UID={USERNAME};PWD={PASSWORD}'
-                conn = pyodbc.connect(connectionString)
-                cursor = conn.cursor()
-
-                cursor.execute(sql)
-                records = cursor.fetchall()
-                print(sql)
-                print("")
-                print("")
-                print(dados)
-
-                totalRegistros = len(records)
-                if(totalRegistros > 0):
-                    print("Nota já lançada")
-                    src_path = os.path.join(arq)
-                    dst_path = os.path.join(DIR_PDFS_PROCESSADOS)
-                    shutil.move(src_path, dst_path)
-                    print(f"{today} {current_time} Arquivo {arq} já processado.\n")
-                    with open(r'C:/SEVEN/teste joao/logs.txt', "a") as arquivo:
-                        arquivo.write(f"{today} {current_time} Arquivo {arq} já processado'.\n")
-                    continue    
-                else:
-                    print("Nota NÃO lançada") 
-                    print("")
-                    print("")
-                    print("Fechando conexão com o DB")
-                    conn.close()
-                    print("Conexão fechada")
-
-                    pyautogui.hotkey('ctrl', 'i')
-                    time.sleep(5)
-                    pyautogui.press('tab', presses= 8)
-                    pyautogui.press('enter')
-                    time.sleep(5)
-                    pyautogui.moveTo(980, 644)
-                    pyautogui.mouseDown()
-                    pyautogui.mouseUp()
-                    pyautogui.mouseDown()
-                    pyautogui.mouseUp()
-                    time.sleep(1)
-                    pyautogui.moveTo(541, 111)
-                    pyautogui.mouseDown()
-                    pyautogui.mouseUp()
-                    #na ordem, 0 data, 1 cnpj do tomador, 2 numero da nota fiscal, 3 cnpj do prestador e 4 codigo de verificação, 5 valor de serviço
-                    pyautogui.write((f'{dados[1][0:2]}.{dados[1][2:5]}.{dados[1][5:8]}/{dados[1][8:12]}-{dados[1][12:15]}'))
-                    time.sleep(5)
-                    pyautogui.press('enter')
-                    time.sleep(3)
-                    pyautogui.press('down')
-                    pyautogui.press('enter')
-                    time.sleep(1)
-                    pyautogui.press('tab', presses= 2)
-                    pyautogui.press('enter')
-                    time.sleep(5)
-                    pyautogui.press('right', presses=2)
-                    pyautogui.write((f'{dados[3][0:2]}.{dados[3][2:5]}.{dados[3][5:8]}/{dados[3][8:12]}-{dados[3][12:15]}'))
-                    time.sleep(3)
-                    pyautogui.press('enter')
-                    time.sleep(5)
-                    pyautogui.press('down')
-                    pyautogui.press('enter')
-                    time.sleep(3)
-                    pyautogui.press('esc')
-                    time.sleep(5)
-                    pyautogui.hotkey('shift', 'tab')
-                    pyautogui.hotkey('ctrl', 'c')
-                    time.sleep(5)
-                    pyautogui.press('tab', presses= 5)
-                    pyautogui.press('enter')
-                    pyautogui.press('down', presses=2)
-                    pyautogui.press('enter')
-                    pyautogui.press('tab')
-                    pyautogui.write(dados[2])
-                    pyautogui.press('tab', presses=2)
-                    pyautogui.press('enter')
-                    pyautogui.press('down')
-                    if SERIE == 'E':
-                        pyautogui.press('down', presses = 6)
-                    #falta colocar os outros steps
-                    else:
-                        pyautogui.press('end')
-                        
-                    pyautogui.press('enter')
-                    pyautogui.press('tab', presses=3)
-                    pyautogui.write(dados[5])
-                    pyautogui.press('tab')
-                    pyautogui.write(f'{current_day[0:2]}{current_day[3:5]}{current_day[6:11]}')
-                    pyautogui.press('tab')
-                    pyautogui.press('space')
-                    pyautogui.press('tab')
-                    pyautogui.press('f1')
-                    time.sleep(5)
-                    
-                    pyautogui.press('tab', presses=28)
-                    time.sleep(5)
-                    pyautogui.hotkey('ctrl', 'v')
-                    time.sleep(5)
-                    pyautogui.press('tab')
-                    time.sleep(3)
-                    
-                    
-                    pyautogui.press('f3')
-                    time.sleep(3)
-                    pyautogui.write(str(SERVICO))
-                    pyautogui.press('tab')
-                    pyautogui.write(str(OPERACAO))
-                    pyautogui.press('tab')
-                    if RETENCAO == 'true':
-                        pyautogui.write('S')
-                    pyautogui.press('tab')
-                    if RETENCAO == 'true' and float(dados[4]) > 499.99:
-                        pyautogui.write('S')
-                    pyautogui.press('tab', presses=3)
-                    pyautogui.write('1')
-                    pyautogui.press('tab', presses=7)
-                    pyautogui.press('backspace')
-                    pyautogui.write(dados[4].replace(".",","))
-                    pyautogui.press('tab', presses=3)
-                    pyautogui.write('1009') 
-                    pyautogui.press('tab')
-                    pyautogui.press('tab')
-                    pyautogui.press('up')
-                    pyautogui.press('up')
-                    pyautogui.moveTo(571, 520)
-                    pyautogui.mouseDown()
-                    pyautogui.mouseUp()
-                    time.sleep(2)
-                    
-                    pyautogui.press('f4')
-                    pyautogui.press('tab', presses=11)
-                    pyautogui.press('del', presses=4)
-                    pyautogui.write(dados[4].replace(".",","))
-                    pyautogui.press('tab')
-                    pyautogui.write(dados[4].replace(".",","))
-                    time.sleep(2)
-                    
-                    pyautogui.press('f5')
-                    time.sleep(3)
-                    pyautogui.press('tab')
-                    pyautogui.press('tab', presses=2)
-                    pyautogui.press('space', presses=2)
-                    time.sleep(2)
-                    time.sleep(5)
-                    
-                    if F6 == 'true':
-                        pyautogui.press('f6')
-                        pyautogui.press('tab')
-                        if dados[3] == '02535864000133':
-                            pyautogui.write(f'20{current_day[3:5]}{current_day[6:11]}')
-                        else:
-                            pyautogui.write(dados[0])
-                        pyautogui.press('tab')
-                        pyautogui.write('100')
-                        pyautogui.press('tab', presses=10)
-                        pyautogui.write(CLASS_FIN)
-                        pyautogui.press('tab')
-                        
-                    
-                    pyautogui.press('f11')
-                    pyautogui.write(dados[6])
-                    time.sleep(2)
-                    
-                    pyautogui.hotkey('ctrl', 'g')
-                    time.sleep(15)
-                    
-                    pyautogui.moveTo(994, 76)
-                    pyautogui.mouseDown()
-                    pyautogui.mouseUp()
-                    time.sleep(5)         
-                    pyautogui.press('enter')
-                    time.sleep(5)  
-                    
-                    sql = f'''
-                SELECT B.INSCRICAO_FEDERAL, C.INSCRICAO_FEDERAL, A.NF_NUMERO, A.NF_ESPECIE, NF_SERIE 
-                FROM NF_COMPRA A 
-                JOIN ENTIDADES B ON A.ENTIDADE = B.ENTIDADE 
-                JOIN ENTIDADES C ON A.EMPRESA  = C.ENTIDADE
-                WHERE B.INSCRICAO_FEDERAL      = '{CNPJ_EMITENTE}'
-                AND C.INSCRICAO_FEDERAL        = '{CNPJ_DESTINATARIO}'
-                AND A.NF_NUMERO                = '{NF_NUMERO}'
-                AND A.NF_ESPECIE               = '{NF_ESPECIE}'
-                AND A.NF_SERIE                 = '{NF_SERIE}'
-            '''
-
-            
+                try:
                     print("Iniciando conexão com o DB")
                     connectionString = f'DRIVER={DRIVER};SERVER={SERVER};DATABASE={DATABASE};UID={USERNAME};PWD={PASSWORD}'
                     conn = pyodbc.connect(connectionString)
@@ -924,40 +743,511 @@ if(True == True):
                     cursor.execute(sql)
                     records = cursor.fetchall()
                     print(sql)
+                    print("")
+                    print("")
+                    print(dados)
+
                     totalRegistros = len(records)
-                    time.sleep(2)
-                    
-                    if totalRegistros == 0:
-                        print("Nota com problema")
-                        src_path = os.path.join(arq)
-                        dst_path = os.path.join(DIR_PDFS_N_PROCESSADOS)
-                        shutil.move(src_path, dst_path)
-                        print(f"Arquivo '{arq}' movido para '{DIR_PDFS_N_PROCESSADOS}'.")
-                        with open(r'C:/SEVEN/teste joao/logs.txt', "a") as arquivo:
-                            arquivo.write(f"'{today}, {current_time} ' Arquivo '{arq}' não está no banco de dados")
-                        pyautogui.press('esc')
-                        pyautogui.hotkey('alt', 'f4')
-                        #handle = Popen(r"C:\SEVEN\teste joao\lancamento_servicos_procfit.exe", creationflags=CREATE_NEW_CONSOLE)
-                        exit()
-                        quit()
-                        
-                    else:              
+                    if(totalRegistros > 0):
+                        print("Nota já lançada")
                         src_path = os.path.join(arq)
                         dst_path = os.path.join(DIR_PDFS_PROCESSADOS)
                         shutil.move(src_path, dst_path)
-                        print(f"Arquivo '{arq}' movido para '{DIR_PDFS_PROCESSADOS}'.")
+                        print(f"{today} {current_time} Arquivo {arq} já processado.\n")
                         with open(r'C:/SEVEN/teste joao/logs.txt', "a") as arquivo:
-                            arquivo.write(f"{today} {current_time} Arquivo {arq} foi cadastrado corretamente!\n")                
+                            arquivo.write(f"{today} {current_time} Arquivo {arq} já processado'.\n")
+                        continue    
+                    else:
+                        print("Nota NÃO lançada") 
+                        print("")
+                        print("")
+                        print("Fechando conexão com o DB")
+                        conn.close()
+                        print("Conexão fechada")
+
+                        pyautogui.hotkey('ctrl', 'i')
+                        time.sleep(5)
+                        pyautogui.press('tab', presses= 8)
+                        pyautogui.press('enter')
+                        time.sleep(5)
+                        pyautogui.moveTo(980, 644)
+                        pyautogui.mouseDown()
+                        pyautogui.mouseUp()
+                        pyautogui.mouseDown()
+                        pyautogui.mouseUp()
+                        time.sleep(1)
+                        pyautogui.moveTo(541, 111)
+                        pyautogui.mouseDown()
+                        pyautogui.mouseUp()
+                        #na ordem, 0 data, 1 cnpj do tomador, 2 numero da nota fiscal, 3 cnpj do prestador e 4 codigo de verificação, 5 valor de serviço
+                        pyautogui.write((f'{dados[1][0:2]}.{dados[1][2:5]}.{dados[1][5:8]}/{dados[1][8:12]}-{dados[1][12:15]}'))
+                        time.sleep(5)
+                        pyautogui.press('enter')
+                        time.sleep(3)
+                        pyautogui.press('down')
+                        pyautogui.press('enter')
+                        time.sleep(1)
+                        pyautogui.press('tab', presses= 2)
+                        pyautogui.press('enter')
+                        time.sleep(5)
+                        pyautogui.press('right', presses=2)
+                        pyautogui.write((f'{dados[3][0:2]}.{dados[3][2:5]}.{dados[3][5:8]}/{dados[3][8:12]}-{dados[3][12:15]}'))
+                        time.sleep(3)
+                        pyautogui.press('enter')
+                        time.sleep(5)
+                        pyautogui.press('down')
+                        pyautogui.press('enter')
+                        time.sleep(3)
+                        pyautogui.press('esc')
+                        time.sleep(5)
+                        pyautogui.hotkey('shift', 'tab')
+                        pyautogui.hotkey('ctrl', 'c')
+                        time.sleep(5)
+                        pyautogui.press('tab', presses= 5)
+                        pyautogui.press('enter')
+                        pyautogui.press('down', presses=2)
+                        pyautogui.press('enter')
+                        pyautogui.press('tab')
+                        pyautogui.write(dados[2])
+                        pyautogui.press('tab', presses=2)
+                        pyautogui.press('enter')
+                        pyautogui.press('down')
+                        if SERIE == 'E':
+                            pyautogui.press('down', presses = 6)
+                        #falta colocar os outros steps
+                        else:
+                            pyautogui.press('end')
+                            
+                        pyautogui.press('enter')
+                        pyautogui.press('tab', presses=3)
+                        pyautogui.write(dados[5])
+                        pyautogui.press('tab')
+                        pyautogui.write(f'{current_day[0:2]}{current_day[3:5]}{current_day[6:11]}')
+                        pyautogui.press('tab')
+                        pyautogui.press('space')
+                        pyautogui.press('tab')
+                        pyautogui.press('f1')
+                        time.sleep(5)
+                        
+                        pyautogui.press('tab', presses=28)
+                        time.sleep(5)
+                        pyautogui.hotkey('ctrl', 'v')
+                        time.sleep(5)
+                        pyautogui.press('tab')
+                        time.sleep(3)
                         
                         
+                        pyautogui.press('f3')
+                        time.sleep(3)
+                        pyautogui.write(str(SERVICO))
+                        pyautogui.press('tab')
+                        pyautogui.write(str(OPERACAO))
+                        pyautogui.press('tab')
+                        if RETENCAO == 'true':
+                            pyautogui.write('S')
+                        pyautogui.press('tab')
+                        if RETENCAO == 'true' and float(dados[4]) > 499.99:
+                            pyautogui.write('S')
+                        pyautogui.press('tab', presses=3)
+                        pyautogui.write('1')
+                        pyautogui.press('tab', presses=7)
+                        pyautogui.press('backspace')
+                        pyautogui.write(dados[4].replace(".",","))
+                        pyautogui.press('tab', presses=3)
+                        pyautogui.write('1009') 
+                        pyautogui.press('tab')
+                        pyautogui.press('tab')
+                        pyautogui.press('up')
+                        pyautogui.press('up')
+                        pyautogui.moveTo(571, 520)
+                        pyautogui.mouseDown()
+                        pyautogui.mouseUp()
+                        time.sleep(2)
                         
-                                         
-            except Exception as e:
-                print(e)     
+                        pyautogui.press('f4')
+                        pyautogui.press('tab', presses=11)
+                        pyautogui.press('del', presses=4)
+                        pyautogui.write(dados[4].replace(".",","))
+                        pyautogui.press('tab')
+                        pyautogui.write(dados[4].replace(".",","))
+                        time.sleep(2)
+                        
+                        pyautogui.press('f5')
+                        time.sleep(3)
+                        pyautogui.press('tab')
+                        pyautogui.press('tab', presses=2)
+                        pyautogui.press('space', presses=2)
+                        time.sleep(2)
+                        time.sleep(5)
+                        
+                        if F6 == 'true':
+                            pyautogui.press('f6')
+                            pyautogui.press('tab')
+                            if dados[3] == '02535864000133':
+                                pyautogui.write(f'20{current_day[3:5]}{current_day[6:11]}')
+                            else:
+                                pyautogui.write(dados[0])
+                            pyautogui.press('tab')
+                            pyautogui.write('100')
+                            pyautogui.press('tab', presses=10)
+                            pyautogui.write(CLASS_FIN)
+                            pyautogui.press('tab')
+                            
+                        
+                        pyautogui.press('f11')
+                        pyautogui.write(dados[6])
+                        time.sleep(2)
+                        
+                        pyautogui.hotkey('ctrl', 'g')
+                        time.sleep(15)
+                        
+                        pyautogui.moveTo(994, 76)
+                        pyautogui.mouseDown()
+                        pyautogui.mouseUp()
+                        time.sleep(5)         
+                        pyautogui.press('enter')
+                        time.sleep(5)  
+                        
+                        sql = f'''
+                    SELECT B.INSCRICAO_FEDERAL, C.INSCRICAO_FEDERAL, A.NF_NUMERO, A.NF_ESPECIE, NF_SERIE 
+                    FROM NF_COMPRA A 
+                    JOIN ENTIDADES B ON A.ENTIDADE = B.ENTIDADE 
+                    JOIN ENTIDADES C ON A.EMPRESA  = C.ENTIDADE
+                    WHERE B.INSCRICAO_FEDERAL      = '{CNPJ_EMITENTE}'
+                    AND C.INSCRICAO_FEDERAL        = '{CNPJ_DESTINATARIO}'
+                    AND A.NF_NUMERO                = '{NF_NUMERO}'
+                    AND A.NF_ESPECIE               = '{NF_ESPECIE}'
+                    AND A.NF_SERIE                 = '{NF_SERIE}'
+                '''
+
                 
-            print("--------------------------")
-            print("")
-            print("")   
+                        print("Iniciando conexão com o DB")
+                        connectionString = f'DRIVER={DRIVER};SERVER={SERVER};DATABASE={DATABASE};UID={USERNAME};PWD={PASSWORD}'
+                        conn = pyodbc.connect(connectionString)
+                        cursor = conn.cursor()
+
+                        cursor.execute(sql)
+                        records = cursor.fetchall()
+                        print(sql)
+                        totalRegistros = len(records)
+                        time.sleep(2)
+                        
+                        if totalRegistros == 0:
+                            print("Nota com problema")
+                            src_path = os.path.join(arq)
+                            dst_path = os.path.join(DIR_PDFS_N_PROCESSADOS)
+                            shutil.move(src_path, dst_path)
+                            print(f"Arquivo '{arq}' movido para '{DIR_PDFS_N_PROCESSADOS}'.")
+                            with open(r'C:/SEVEN/teste joao/logs.txt', "a") as arquivo:
+                                arquivo.write(f"'{today}, {current_time} ' Arquivo '{arq}' não está no banco de dados\n")
+                            pyautogui.press('esc')
+                            pyautogui.hotkey('alt', 'f4')
+                            #handle = Popen(r"C:\SEVEN\teste joao\lancamento_servicos_procfit.exe", creationflags=CREATE_NEW_CONSOLE)
+                            pyautogui.press('esc', presses = 3)
+                            pyautogui.moveTo(994, 76)
+                            pyautogui.mouseDown()
+                            pyautogui.mouseUp()
+                            time.sleep(5)         
+                            pyautogui.press('enter')
+                            time.sleep(5)  
+                            
+                            
+                        else:              
+                            src_path = os.path.join(arq)
+                            dst_path = os.path.join(DIR_PDFS_PROCESSADOS)
+                            shutil.move(src_path, dst_path)
+                            print(f"Arquivo '{arq}' movido para '{DIR_PDFS_PROCESSADOS}'.")
+                            with open(r'C:/SEVEN/teste joao/logs.txt', "a") as arquivo:
+                                arquivo.write(f"{today} {current_time} Arquivo {arq} foi cadastrado corretamente!\n")                
+                            
+                                     
+                except Exception as e:
+                    print(e)     
+                    
+                print("--------------------------")
+                print("")
+                print("")
+                
+            else:
+                try:
+                    SERVICO = cfg.get(dados[3], 'servico')
+                    OPERACAO = cfg.get(dados[3], 'operacao')
+                    CLASS_FIN = cfg.get(dados[3], 'class_fin')
+                    F6 = cfg.get(dados[3], 'f6')
+                    SERIE= cfg.get(dados[3],'serie')
+                    NF_ESPECIE = cfg.get(dados[3],'nf_especie')
+                except:
+                    SERVICO = 43
+                    OPERACAO = 152
+                    CLASS_FIN = []
+                    F6 = 'False'
+                    SERIE = 0
+                    NF_ESPECIE = 'NFS'
+                    NF_SERIE = 0
+                try:
+                    RETENCAO = cfg.get(dados[3], 'retencao')
+                except:
+                    RETENCAO = 'false'
+                            
+                SERVER = cfg.get('CONFIG','SERVER')
+                DATABASE = cfg.get('CONFIG','DATABASE')
+                USERNAME = cfg.get('CONFIG','USERNAME')
+                PASSWORD = cfg.get('CONFIG','PASSWORD')
+                DRIVER = cfg.get('CONFIG','DRIVER')
+
+                CNPJ_DESTINATARIO = (f'{dados[1][0:2]}.{dados[1][2:5]}.{dados[1][5:8]}/{dados[1][8:12]}-{dados[1][12:15]}')
+                CNPJ_EMITENTE = (f'{dados[3][0:2]}.{dados[3][2:5]}.{dados[3][5:8]}/{dados[3][8:12]}-{dados[3][12:15]}')
+                NF_NUMERO = dados[2]
+                NF_SERIE = SERIE
+                
+                if NF_NUMERO[0]== '0':
+                    NF_NUMERO = NF_NUMERO[1:len(NF_NUMERO)]
+
+                sql = f'''
+                    SELECT B.INSCRICAO_FEDERAL, C.INSCRICAO_FEDERAL, A.NF_NUMERO, A.NF_ESPECIE, NF_SERIE 
+                    FROM NF_COMPRA A 
+                    JOIN ENTIDADES B ON A.ENTIDADE = B.ENTIDADE 
+                    JOIN ENTIDADES C ON A.EMPRESA  = C.ENTIDADE
+                    WHERE B.INSCRICAO_FEDERAL      = '{CNPJ_EMITENTE}'
+                    AND C.INSCRICAO_FEDERAL        = '{CNPJ_DESTINATARIO}'
+                    AND A.NF_NUMERO                = '{NF_NUMERO}'
+                    AND A.NF_ESPECIE               = '{NF_ESPECIE}'
+                    AND A.NF_SERIE                 = '{NF_SERIE}'
+                '''
+
+                try:
+                    print("Iniciando conexão com o DB")
+                    connectionString = f'DRIVER={DRIVER};SERVER={SERVER};DATABASE={DATABASE};UID={USERNAME};PWD={PASSWORD}'
+                    conn = pyodbc.connect(connectionString)
+                    cursor = conn.cursor()
+
+                    cursor.execute(sql)
+                    records = cursor.fetchall()
+                    print(sql)
+                    print("")
+                    print("")
+                    print(dados)
+
+                    totalRegistros = len(records)
+                    if(totalRegistros > 0):
+                        print("Nota já lançada")
+                        src_path = os.path.join(arq)
+                        dst_path = os.path.join(DIR_PDFS_PROCESSADOS)
+                        shutil.move(src_path, dst_path)
+                        print(f"{today} {current_time} Arquivo {arq} já processado.\n")
+                        with open(r'C:/SEVEN/teste joao/logs.txt', "a") as arquivo:
+                            arquivo.write(f"{today} {current_time} Arquivo {arq} já processado'.\n")
+                        continue    
+                    else:
+                        print("Nota NÃO lançada") 
+                        print("")
+                        print("")
+                        print("Fechando conexão com o DB")
+                        conn.close()
+                        print("Conexão fechada")
+
+                        pyautogui.hotkey('ctrl', 'i')
+                        time.sleep(5)
+                        pyautogui.press('tab', presses= 8)
+                        pyautogui.press('enter')
+                        time.sleep(5)
+                        pyautogui.moveTo(980, 644)
+                        pyautogui.mouseDown()
+                        pyautogui.mouseUp()
+                        pyautogui.mouseDown()
+                        pyautogui.mouseUp()
+                        time.sleep(1)
+                        pyautogui.moveTo(541, 111)
+                        pyautogui.mouseDown()
+                        pyautogui.mouseUp()
+                        #na ordem, 0 data, 1 cnpj do tomador, 2 numero da nota fiscal, 3 cnpj do prestador e 4 codigo de verificação, 5 valor de serviço
+                        pyautogui.write((f'{dados[1][0:2]}.{dados[1][2:5]}.{dados[1][5:8]}/{dados[1][8:12]}-{dados[1][12:15]}'))
+                        time.sleep(5)
+                        pyautogui.press('enter')
+                        time.sleep(3)
+                        pyautogui.press('down')
+                        pyautogui.press('enter')
+                        time.sleep(1)
+                        pyautogui.press('tab', presses= 2)
+                        pyautogui.press('enter')
+                        time.sleep(5)
+                        pyautogui.press('right', presses=2)
+                        pyautogui.write((f'{dados[3][0:2]}.{dados[3][2:5]}.{dados[3][5:8]}/{dados[3][8:12]}-{dados[3][12:15]}'))
+                        time.sleep(3)
+                        pyautogui.press('enter')
+                        time.sleep(5)
+                        pyautogui.press('down')
+                        pyautogui.press('enter')
+                        time.sleep(3)
+                        pyautogui.press('esc')
+                        time.sleep(5)
+                        pyautogui.hotkey('shift', 'tab')
+                        pyautogui.hotkey('ctrl', 'c')
+                        time.sleep(5)
+                        pyautogui.press('tab', presses= 5)
+                        pyautogui.press('enter')
+                        pyautogui.press('down', presses=2)
+                        pyautogui.press('enter')
+                        pyautogui.press('tab')
+                        pyautogui.write(dados[2])
+                        pyautogui.press('tab', presses=2)
+                        pyautogui.press('enter')
+                        pyautogui.press('down')
+                        if SERIE == 'E':
+                            pyautogui.press('down', presses = 6)
+                        #falta colocar os outros steps
+                        else:
+                            pyautogui.press('end')
+                            
+                        pyautogui.press('enter')
+                        pyautogui.press('tab', presses=3)
+                        pyautogui.write(dados[5])
+                        pyautogui.press('tab')
+                        pyautogui.write(f'{current_day[0:2]}{current_day[3:5]}{current_day[6:11]}')
+                        pyautogui.press('tab')
+                        pyautogui.press('space')
+                        pyautogui.press('tab')
+                        pyautogui.press('f1')
+                        time.sleep(5)
+                        
+                        pyautogui.press('tab', presses=28)
+                        time.sleep(5)
+                        pyautogui.hotkey('ctrl', 'v')
+                        time.sleep(5)
+                        pyautogui.press('tab')
+                        time.sleep(3)
+                        
+                        
+                        pyautogui.press('f3')
+                        time.sleep(3)
+                        pyautogui.write(str(SERVICO))
+                        pyautogui.press('tab')
+                        pyautogui.write(str(OPERACAO))
+                        pyautogui.press('tab')
+                        if RETENCAO == 'true':
+                            pyautogui.write('S')
+                        pyautogui.press('tab')
+                        if RETENCAO == 'true' and float(dados[4]) > 499.99:
+                            pyautogui.write('S')
+                        pyautogui.press('tab', presses=3)
+                        pyautogui.write('1')
+                        pyautogui.press('tab', presses=7)
+                        pyautogui.press('backspace')
+                        pyautogui.write(dados[4].replace(".",","))
+                        pyautogui.press('tab', presses=3)
+                        pyautogui.write('1009') 
+                        pyautogui.press('tab')
+                        pyautogui.press('tab')
+                        pyautogui.press('up')
+                        pyautogui.press('up')
+                        pyautogui.moveTo(571, 520)
+                        pyautogui.mouseDown()
+                        pyautogui.mouseUp()
+                        time.sleep(2)
+                        
+                        pyautogui.press('f4')
+                        pyautogui.press('tab', presses=11)
+                        pyautogui.press('del', presses=4)
+                        pyautogui.write(dados[4].replace(".",","))
+                        pyautogui.press('tab')
+                        pyautogui.write(dados[4].replace(".",","))
+                        time.sleep(2)
+                        
+                        pyautogui.press('f5')
+                        time.sleep(3)
+                        pyautogui.press('tab')
+                        pyautogui.press('tab', presses=2)
+                        pyautogui.press('space', presses=2)
+                        time.sleep(2)
+                        time.sleep(5)
+                        
+                        if F6 == 'true':
+                            pyautogui.press('f6')
+                            pyautogui.press('tab')
+                            if dados[3] == '02535864000133':
+                                pyautogui.write(f'20{current_day[3:5]}{current_day[6:11]}')
+                            else:
+                                pyautogui.write(dados[0])
+                            pyautogui.press('tab')
+                            pyautogui.write('100')
+                            pyautogui.press('tab', presses=10)
+                            pyautogui.write(CLASS_FIN)
+                            pyautogui.press('tab')
+                            
+                        
+                        pyautogui.press('f11')
+                        pyautogui.write(dados[6])
+                        time.sleep(2)
+                        
+                        pyautogui.hotkey('ctrl', 'g')
+                        time.sleep(15)
+                        
+                        pyautogui.moveTo(994, 76)
+                        pyautogui.mouseDown()
+                        pyautogui.mouseUp()
+                        time.sleep(5)         
+                        pyautogui.press('enter')
+                        time.sleep(5)  
+                        
+                        sql = f'''
+                    SELECT B.INSCRICAO_FEDERAL, C.INSCRICAO_FEDERAL, A.NF_NUMERO, A.NF_ESPECIE, NF_SERIE 
+                    FROM NF_COMPRA A 
+                    JOIN ENTIDADES B ON A.ENTIDADE = B.ENTIDADE 
+                    JOIN ENTIDADES C ON A.EMPRESA  = C.ENTIDADE
+                    WHERE B.INSCRICAO_FEDERAL      = '{CNPJ_EMITENTE}'
+                    AND C.INSCRICAO_FEDERAL        = '{CNPJ_DESTINATARIO}'
+                    AND A.NF_NUMERO                = '{NF_NUMERO}'
+                    AND A.NF_ESPECIE               = '{NF_ESPECIE}'
+                    AND A.NF_SERIE                 = '{NF_SERIE}'
+                '''
+
+                
+                        print("Iniciando conexão com o DB")
+                        connectionString = f'DRIVER={DRIVER};SERVER={SERVER};DATABASE={DATABASE};UID={USERNAME};PWD={PASSWORD}'
+                        conn = pyodbc.connect(connectionString)
+                        cursor = conn.cursor()
+
+                        cursor.execute(sql)
+                        records = cursor.fetchall()
+                        print(sql)
+                        totalRegistros = len(records)
+                        time.sleep(2)
+                        
+                        if totalRegistros == 0:
+                            print("Nota com problema")
+                            src_path = os.path.join(arq)
+                            dst_path = os.path.join(DIR_PDFS_N_PROCESSADOS)
+                            shutil.move(src_path, dst_path)
+                            print(f"Arquivo '{arq}' movido para '{DIR_PDFS_N_PROCESSADOS}'.")
+                            with open(r'C:/SEVEN/teste joao/logs.txt', "a") as arquivo:
+                                arquivo.write(f"'{today}, {current_time} ' Arquivo '{arq}' não está no banco de dados\n")
+                            pyautogui.press('esc')
+                            pyautogui.hotkey('alt', 'f4')
+                            #handle = Popen(r"C:\SEVEN\teste joao\lancamento_servicos_procfit.exe", creationflags=CREATE_NEW_CONSOLE)
+                            pyautogui.press('esc', presses = 3)
+                            pyautogui.moveTo(994, 76)
+                            pyautogui.mouseDown()
+                            pyautogui.mouseUp()
+                            time.sleep(5)         
+                            pyautogui.press('enter')
+                            time.sleep(5)  
+                            
+                            
+                        else:              
+                            src_path = os.path.join(arq)
+                            dst_path = os.path.join(DIR_PDFS_PROCESSADOS)
+                            shutil.move(src_path, dst_path)
+                            print(f"Arquivo '{arq}' movido para '{DIR_PDFS_PROCESSADOS}'.")
+                            with open(r'C:/SEVEN/teste joao/logs.txt', "a") as arquivo:
+                                arquivo.write(f"{today} {current_time} Arquivo {arq} foi cadastrado corretamente!\n")                
+                            
+                                     
+                except Exception as e:
+                    print(e)     
+                    
+                print("--------------------------")
+                print("")
+                print("")   
                 
         
     pyautogui.moveTo(1005, 706)

@@ -435,6 +435,7 @@ def extract_text_from_pdf_claro(arquivo):
 #print(extract_text_from_pdf_energisa("D:\\temp\\[06198619003740]LOJA60ENERGISA.pdf"))
 
 def extract_text_from_pdf_VFS(arquivo):
+    try:
         with pdfplumber.open(arquivo) as pdf:
             text = ""
             for page in pdf.pages:
@@ -476,3 +477,89 @@ def extract_text_from_pdf_VFS(arquivo):
                 data_emissao = data_emissao.replace('/','') 
                     
         return data_vencimento,cnpj_drug,nf_numero,cnpj_vfs,valor_servico,data_emissao," "
+    except:
+        try:
+            
+            text = ""
+            for page in pdf.pages:
+                text += page.extract_text()
+                a = text
+                lines = a.split(sep='\n')
+                cnpj_vfs = 0
+                prox=False
+                cdv=False
+                deh=False
+                tipo_nota = lines[1][0:6]
+                for line in lines:
+                    if deh == True:
+                        data_emissao = line.split(' ')[0].replace('/','')
+                        d_e_mes=data_emissao[2:4]
+                        d_e_ano = data_emissao[4:8]
+                        data_vencimento = f'010{int(d_e_mes)+1}{d_e_ano}'
+                        deh = False
+                    if cdv == True:
+                        codigo_verificacao=line.split(' ')[0]
+                        cdv = False
+                    if prox == True:
+                        nf_numero = line.split(' ')[0]
+                        prox=False
+                    if 'Data e Hora de Emissão' in line:
+                        deh=True
+                    if 'RPS Nº' in line:
+                        prox=True
+                    if 'Código de Verificação' in line:
+                        cdv = True
+                    if 'CPF/CNPJ:' in line:
+                        if cnpj_vfs == 0:
+                            cnpj_vfs = line.split(':')[1][0:18]
+                        cnpj_drug = line.split(':')[1][0:18]
+                    if 'VALOR TOTAL DA NOTA' in line:
+                        valor_servico = line.split(' ')[-1]
+                            
+                cnpj_drug = cnpj_drug.replace('/','').replace('.','').replace('-','').strip()
+                cnpj_vfs = cnpj_vfs.replace('/','').replace('.','').replace('-','').strip()
+            return data_vencimento,cnpj_drug,nf_numero,cnpj_vfs,valor_servico,data_emissao,codigo_verificacao,tipo_nota
+        except: 
+            with pdfplumber.open(arquivo) as pdf:
+                text = ""
+                for page in pdf.pages:
+                    text += page.extract_text()
+                    a = text
+                    lines = a.split(sep='\n')
+                    cnpj_vfs = 0
+                    prox=False
+                    cdv=False
+                    deh=False
+                    tipo_nota = lines[0]
+                    for line in lines:
+                        if deh == True:
+                            data_emissao = line.split(' ')[0].replace('/','')
+                            d_e_mes=data_emissao[2:4]
+                            d_e_ano = data_emissao[4:8]
+                            data_vencimento = f'010{int(d_e_mes)+1}{d_e_ano}'
+                            deh = False
+                        if cdv == True:
+                            codigo_verificacao=line.split(' ')[2]
+                            cdv = False
+                        if prox == True:
+                            nf_numero = line.split(' ')[0]
+                            prox=False
+                        if 'Data e Hora de Emissão' in line:
+                            deh=True
+                        if 'PREFEITURA MUNICIPAL DE MACEIÓ' in line:
+                            prox=True
+                        if 'Cod Verificação NFS-e' in line:
+                            cdv = True
+                        if 'CNPJ/CPF:' in line:
+                            if cnpj_vfs == 0:
+                                cnpj_vfs = line.split(':')[1][0:18]
+                            cnpj_drug = line.split(':')[1][0:18]
+                        if 'Valor Total' in line:
+                            valor_servico = line.split(':')[1]
+                            
+                            
+                cnpj_drug = cnpj_drug.replace('/','').replace('.','').replace('-','').strip()
+                cnpj_vfs = cnpj_vfs.replace('/','').replace('.','').replace('-','').strip()
+            
+                    
+            return data_vencimento,cnpj_drug,nf_numero,cnpj_vfs,valor_servico,data_emissao,codigo_verificacao,tipo_nota
