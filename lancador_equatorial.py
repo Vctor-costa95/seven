@@ -433,3 +433,46 @@ def extract_text_from_pdf_claro(arquivo):
                 
                 
 #print(extract_text_from_pdf_energisa("D:\\temp\\[06198619003740]LOJA60ENERGISA.pdf"))
+
+def extract_text_from_pdf_VFS(arquivo):
+        with pdfplumber.open(arquivo) as pdf:
+            text = ""
+            for page in pdf.pages:
+                text += page.extract_text()
+                a = text
+                lines = a.split(sep='\n')
+                if lines[1] == 'DESCRITIVO DE LOCAÇÃO':
+                    desc_lotacao = True
+                cnpj_vfs = 0
+                data_vencimento = ''
+                
+                cont = 0
+                cont_leituras = 0
+                
+                for line in lines:
+                    cont += 1
+                    if desc_lotacao == True:
+                        if 'Data emissão' in line:
+                            data_emissao = line.split(' ')[2]
+                            d_e = line.split(' ')[2][3:10]
+                            d_e_mes=d_e[0:2]
+                            d_e_ano = d_e[2:8]
+                            data_vencimento = f'01/0{int(d_e_mes)+1}{d_e_ano}'
+                            
+                        if 'CPF/CNPJ:' in line:
+                            if cnpj_vfs == 0:
+                                cnpj_vfs = line.replace(' ','').split(':')[1]
+                            cnpj_drug = line.replace(' ','').split(':')[1][0:18]
+                            
+                        if 'VALOR R$' in line:
+                            valor_servico = line.split(' ')[3]
+                            
+                        if 'N° :' in line:
+                            nf_numero = line.split(' ')[2]
+                            
+                data_vencimento = data_vencimento.replace('/','')        
+                cnpj_drug = cnpj_drug.replace('.','').replace('/','').replace('-','') 
+                cnpj_vfs =  cnpj_vfs.replace('.','').replace('/','').replace('-','')  
+                data_emissao = data_emissao.replace('/','') 
+                    
+        return data_vencimento,cnpj_drug,nf_numero,cnpj_vfs,valor_servico,data_emissao," "
