@@ -489,8 +489,15 @@ def extract_text_from_pdf_VFS(arquivo):
                 prox=False
                 cdv=False
                 deh=False
+                descont=False
                 tipo_nota = lines[1][0:6]
                 for line in lines:
+                    if descont == True:
+                        cnt=cnt+1
+                        if cnt==2:
+                            aliquota = line.split(' ')[4]
+                            Valor_do_ISS = line.split(' ')[6]
+                            descont==False
                     if deh == True:
                         data_emissao = line.split(' ')[0].replace('/','')
                         d_e_mes=data_emissao[2:4]
@@ -515,10 +522,14 @@ def extract_text_from_pdf_VFS(arquivo):
                         cnpj_drug = line.split(':')[1][0:18]
                     if 'VALOR TOTAL DA NOTA' in line:
                         valor_servico = line.split(' ')[-1]
-                            
-                cnpj_drug = cnpj_drug.replace('/','').replace('.','').replace('-','').strip()
-                cnpj_vfs = cnpj_vfs.replace('/','').replace('.','').replace('-','').strip()
-            return data_vencimento,cnpj_drug,nf_numero,cnpj_vfs,valor_servico,data_emissao,codigo_verificacao,tipo_nota
+                    if line == '.':
+                        descont=True
+                        cnt=0
+
+            cnpj_drug = cnpj_drug.replace('/','').replace('.','').replace('-','').strip()
+            cnpj_vfs = cnpj_vfs.replace('/','').replace('.','').replace('-','').strip()
+                
+            return data_vencimento,cnpj_drug,nf_numero,cnpj_vfs,valor_servico,data_emissao,codigo_verificacao,aliquota,Valor_do_ISS,tipo_nota
         except: 
             with pdfplumber.open(arquivo) as pdf:
                 text = ""

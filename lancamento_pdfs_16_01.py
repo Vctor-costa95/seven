@@ -683,7 +683,7 @@ if(True == True):
         for arq in arquivos:
             dados = extract_text_from_pdf_VFS(arq)
             print(arq, len(arquivos))
-            if dados[7] == 'N° NFS-e' or dados[7] == 'RPS Nº':
+            if dados[-1] == 'N° NFS-e' or dados[-1] == 'RPS Nº':
                 try:
                     SERVICO = cfg.get(dados[3], 'servico')
                     OPERACAO = cfg.get(dados[3], 'operacao')
@@ -707,6 +707,26 @@ if(True == True):
                 SERVICO = 8
                 OPERACAO = 23
                 CLASS_FIN = 109
+                
+                if dados[7] == '5,06':
+                    SERVICO=218
+                elif dados[7] == '2,53':
+                    SERVICO=193
+                elif dados[7] == '1,00':
+                    SERVICO=155
+                elif dados[7] == '2,79':
+                    SERVICO=99
+                elif dados[7] == '2,37':
+                    SERVICO=78
+                elif dados[7] == '4,00':
+                    SERVICO=77
+                elif dados[7] == '2,00':
+                    SERVICO=74
+                elif dados[7] == '2,50':
+                    SERVICO=73
+                elif dados[7] == '5,00':
+                    SERVICO=8
+                
                  
                 SERVER = cfg.get('CONFIG','SERVER')
                 DATABASE = cfg.get('CONFIG','DATABASE')
@@ -848,9 +868,15 @@ if(True == True):
                         pyautogui.press('tab')
                         if RETENCAO == 'true' and float(dados[4]) > 499.99:
                             pyautogui.write('S')
-                        pyautogui.press('tab', presses=3)
+                        pyautogui.press('tab', presses=2)
+                        if float(dados[7].replace(',','.')) > 0:
+                            pyautogui.write('S')
+                        pyautogui.press('tab')
                         pyautogui.write('1')
-                        pyautogui.press('tab', presses=7)
+                        pyautogui.press('tab', presses=6)
+                        if float(dados[7].replace(',','.')) > 0:
+                            pyautogui.write(dados[7])
+                        pyautogui.press('tab')
                         pyautogui.press('backspace')
                         pyautogui.write(dados[4].replace(".",","))
                         pyautogui.press('tab', presses=3)
@@ -877,6 +903,8 @@ if(True == True):
                         pyautogui.press('tab')
                         pyautogui.press('tab', presses=2)
                         pyautogui.press('space', presses=2)
+                        if float(dados[7].replace(',','')) > 0:
+                            pyautogui.press('space')
                         time.sleep(2)
                         time.sleep(5)
                         
