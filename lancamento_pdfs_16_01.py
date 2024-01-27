@@ -683,22 +683,16 @@ if(True == True):
         for arq in arquivos:
             dados = extract_text_from_pdf_VFS(arq)
             print(arq, len(arquivos))
+            print(dados)
             if dados[-1] == 'N° NFS-e' or dados[-1] == 'RPS Nº':
-                try:
-                    SERVICO = cfg.get(dados[3], 'servico')
-                    OPERACAO = cfg.get(dados[3], 'operacao')
-                    CLASS_FIN = cfg.get(dados[3], 'class_fin')
-                    F6 = cfg.get(dados[3], 'f6')
-                    SERIE= cfg.get(dados[3],'serie')
-                    NF_ESPECIE = cfg.get(dados[3],'nf_especie')
-                except:
-                    SERVICO = 43
-                    OPERACAO = 152
-                    CLASS_FIN = []
-                    F6 = 'False'
-                    SERIE = 0
-                    NF_ESPECIE = 'NFS'
-                    NF_SERIE = 0
+                
+                SERVICO = cfg.get(dados[3], 'servico')
+                OPERACAO = cfg.get(dados[3], 'operacao')
+                CLASS_FIN = cfg.get(dados[3], 'class_fin')
+                F6 = cfg.get(dados[3], 'f6')
+                SERIE= cfg.get(dados[3],'serie')
+                NF_ESPECIE = cfg.get(dados[3],'nf_especie')
+                
                 try:
                     RETENCAO = cfg.get(dados[3], 'retencao')
                 except:

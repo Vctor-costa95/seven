@@ -518,8 +518,8 @@ def extract_text_from_pdf_VFS(arquivo):
                         cdv = True
                     if 'CPF/CNPJ:' in line:
                         if cnpj_vfs == 0:
-                            cnpj_vfs = line.split(':')[1][0:18]
-                        cnpj_drug = line.split(':')[1][0:18]
+                            cnpj_vfs = line.split(':')[1][0:19]
+                        cnpj_drug = line.split(':')[1][0:19]
                     if 'VALOR TOTAL DA NOTA' in line:
                         valor_servico = line.split(' ')[-1]
                     if line == '.':
