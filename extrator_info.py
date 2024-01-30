@@ -4,7 +4,7 @@ def ExtratordeInfo2(file):
     import pdfplumber
     import pandas as pd
     
-    with open('extração_de_dados.csv','w') as fp:
+    with open(f'extração_de_dados.csv','w') as fp:
         fp.write('cnpj_prestador,razao_social,uf_serv,endereco,n_nota,serie,data,VALOR_SERVIÇO ,DESCONTO_INCONDICIONAL,VALOR_SERVIÇO,DEDUÇÕES,VALOR_CONTÁBIL,BASE_CÁLCULO,ALIQUOTA_ISS,ISS,PIS,COFINS,CSLL,INSS\n')
     fileExt = r".pdf"
     files = os.listdir(file)
@@ -77,8 +77,9 @@ def ExtratordeInfo2(file):
                                     razao_social=line.split(':')[1]
                     dados = cnpj_prestador,razao_social,uf_serv,endereco,n_nota,serie,data,VALOR_SERVIÇO ,DESCONTO_INCONDICIONAL,VALOR_SERVIÇO,DEDUÇÕES,VALOR_SERVIÇO,BASE_CÁLCULO,ALIQUOTA_ISS,ISS,PIS,COFINS,CSLL,INSS
                     dados=str(dados)
-                    with open('extração_de_dados.csv','a') as fp:
+                    with open(f'extração_de_dados.csv','a') as fp:
                         fp.write(f'{dados}\n')
+                    
                     print(f'lido {pdf_file} com sucesso')
         except:
             try:
@@ -139,8 +140,9 @@ def ExtratordeInfo2(file):
                                     rpt = True  
                         dados = cnpj,razao,uf,municipio,endereco,n_nota,serie,data,serie,VALOR_SERVIÇO ,deducoes,VALOR_SERVIÇO,Base_calculo,aliquota,ISS,PIS,COFINS,CSLL,IRPJ,INSS
                         dados=str(dados)
-                        with open('extração_de_dados.csv','a') as fp:
+                        with open(f'extração_de_dados.csv','a') as fp:
                             fp.write(f'{dados}\n')
+                        
                         print(f"lido {pdf_file} com sucesso")
             except:       
                 try:
@@ -215,9 +217,13 @@ def ExtratordeInfo2(file):
                                         aplicada = True
                             dados = cnpj,razao,uf,endereco,n_nota,serie,data,VALOR_SERVIÇO ,descontos,VALOR_SERVIÇO,deducoes,VALOR_SERVIÇO,Base_calculo,aliquota,ISS,PIS,COFINS,CSLL,INSS
                             dados=str(dados)
-                            with open('extração_de_dados.csv','a') as fp:
+                            with open(f'extração_de_dados.csv','a') as fp:
                                 fp.write(f'{dados}\n')
+                            
                             print(f'lido {pdf_file} com sucesso')
+                            
   
                 except:
                     print(f'Não foi possível ler o arquivo {pdf_file}')
+                    
+    
