@@ -171,9 +171,9 @@ def converterXmlServicoToJson(arquivoXml):
         'CpfCnpj') is not None else tomador_servico.find('CNPJ').text
         cnpj_cnpj_tomador = cnpj_cnpj_tomador.strip()
         
-        numero = Bs_data.find('IdentificacaoRps').text
-        numero = numero.split(sep=' ')
-        numero = numero[1]
+        numero = Bs_data.find('Nfse').text
+        numero = numero.split(' ')
+        numero = numero[2]
         
         # PRESTADOR     
         prestador_servico = Bs_data.find('IdentificacaoPrestador')
